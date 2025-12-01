@@ -1,13 +1,13 @@
 import React from 'react';
 import { useLocation, Link } from 'wouter';
 import { 
-  Home2, 
-  Receipt1, 
-  User, 
-  Setting2, 
+  Ghost,
+  People,
+  Bank,
+  Wallet,
+  Profile2User,
   LogoutCurve,
   SearchNormal1,
-  Notification,
   ArrowDown2
 } from 'iconsax-react';
 
@@ -20,10 +20,11 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
   const [location] = useLocation();
 
   const navItems = [
-    { icon: Home2, path: '/dashboard', label: 'Home' },
-    { icon: Receipt1, path: '/transactions', label: 'Transactions' },
-    { icon: User, path: '/team', label: 'Team' },
-    { icon: Setting2, path: '/settings', label: 'Settings' },
+    { icon: Ghost, path: '/dashboard', label: 'Home', hasNotification: true },
+    { icon: People, path: '/team', label: 'Team' },
+    { icon: Bank, path: '/transactions', label: 'Transactions' },
+    { icon: Wallet, path: '/wallet', label: 'Wallet' },
+    { icon: Profile2User, path: '/users', label: 'Users' },
   ];
 
   return (
@@ -46,7 +47,12 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
             return (
               <Link key={item.path} href={item.path}>
                 <a className={`p-3 rounded-xl transition-all duration-200 group relative ${isActive ? 'text-blue-600 bg-blue-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}>
-                  <item.icon size="24" variant={isActive ? "Bold" : "Linear"} />
+                  <div className="relative">
+                    <item.icon size="24" variant={isActive ? "Bold" : "Linear"} />
+                    {item.hasNotification && (
+                      <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
+                    )}
+                  </div>
                   {isActive && (
                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-blue-600 rounded-r-full -ml-3" />
                   )}
