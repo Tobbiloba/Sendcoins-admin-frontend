@@ -11,6 +11,8 @@ import SetupPassword from "@/pages/SetupPassword";
 import ConfirmPassword from "@/pages/ConfirmPassword";
 import Transactions from "@/pages/Transactions";
 import ManageTeam from "@/pages/ManageTeam";
+import Users from "@/pages/Users";
+import PartnerAccounts from "@/pages/PartnerAccounts";
 
 function Router() {
   return (
@@ -20,6 +22,9 @@ function Router() {
       <Route path="/confirm-password" component={ConfirmPassword} />
       <Route path="/transactions" component={Transactions} />
       <Route path="/team" component={ManageTeam} />
+      <Route path="/users" component={Users} />
+      <Route path="/partners" component={PartnerAccounts} />
+      <Route path="/dashboard" component={Transactions} /> {/* Placeholder for now */}
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />

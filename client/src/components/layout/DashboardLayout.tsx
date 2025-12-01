@@ -21,10 +21,10 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
 
   const navItems = [
     { icon: Ghost, path: '/dashboard', label: 'Home', hasNotification: true },
-    { icon: People, path: '/team', label: 'Team' },
-    { icon: Bank, path: '/transactions', label: 'Transactions' },
-    { icon: Wallet, path: '/wallet', label: 'Wallet' },
-    { icon: Profile2User, path: '/users', label: 'Users' },
+    { icon: People, path: '/users', label: 'Users' },
+    { icon: Bank, path: '/partners', label: 'Partner Accounts' },
+    { icon: Wallet, path: '/transactions', label: 'Transactions' },
+    { icon: Profile2User, path: '/team', label: 'Manage Team' },
   ];
 
   return (
@@ -48,10 +48,10 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
               <Link 
                 key={item.path} 
                 href={item.path} 
-                className={`p-3 rounded-xl transition-all duration-200 group relative block ${isActive ? 'text-blue-600 bg-blue-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
+                className={`p-3 rounded-xl transition-all duration-200 group relative block ${isActive ? 'text-blue-600 bg-blue-50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
               >
-                <div className="relative w-6 h-6">
-                  <item.icon size="24" variant={isActive ? "Bold" : "Linear"} />
+                <div className="relative w-6 h-6 flex items-center justify-center">
+                  <item.icon size="24" variant={isActive ? "Bold" : "Linear"} color="currentColor" />
                   {item.hasNotification && (
                     <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
                   )}
@@ -65,11 +65,12 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
         </nav>
 
         <div className="mt-auto">
-          <button className="p-3 text-gray-400 hover:text-red-500 transition-colors">
-            <LogoutCurve size="24" />
+          <button className="p-3 text-gray-500 hover:text-red-500 transition-colors">
+            <LogoutCurve size="24" color="currentColor" />
           </button>
         </div>
       </aside>
+
 
       {/* Main Content */}
       <main className="flex-1 ml-20 min-h-screen flex flex-col">
