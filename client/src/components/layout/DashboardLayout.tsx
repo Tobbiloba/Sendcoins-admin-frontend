@@ -45,18 +45,20 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
           {navItems.map((item) => {
             const isActive = location === item.path;
             return (
-              <Link key={item.path} href={item.path}>
-                <a className={`p-3 rounded-xl transition-all duration-200 group relative ${isActive ? 'text-blue-600 bg-blue-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}>
-                  <div className="relative">
-                    <item.icon size="24" variant={isActive ? "Bold" : "Linear"} />
-                    {item.hasNotification && (
-                      <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
-                    )}
-                  </div>
-                  {isActive && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-blue-600 rounded-r-full -ml-3" />
+              <Link 
+                key={item.path} 
+                href={item.path} 
+                className={`p-3 rounded-xl transition-all duration-200 group relative block ${isActive ? 'text-blue-600 bg-blue-50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
+              >
+                <div className="relative w-6 h-6">
+                  <item.icon size="24" variant={isActive ? "Bold" : "Linear"} />
+                  {item.hasNotification && (
+                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
                   )}
-                </a>
+                </div>
+                {isActive && (
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-blue-600 rounded-r-full -ml-3" />
+                )}
               </Link>
             );
           })}
