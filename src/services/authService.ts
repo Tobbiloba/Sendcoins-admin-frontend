@@ -25,8 +25,23 @@ export const authService = {
   login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const response: any = await api.post('/auth/admin/login', credentials);
-    // Map backend response to frontend expected format
+
+    // Check if MFA is required (backend returns mfaToken without admin data)
+    if (response.requiresMfa && response.mfaToken) {
+      return {
+        success: true,
+        requiresMfa: true,
+        mfaToken: response.mfaToken,
+      };
+    }
+
+    // Validate response has admin data
     const admin = response.admin;
+    if (!admin) {
+      throw new Error('Invalid response from server');
+    }
+
+    // Map backend response to frontend expected format
     return {
       success: true,
       user: {
@@ -42,13 +57,12 @@ export const authService = {
         permissions: admin.dynamicRole?.permissions || [],
         mfaEnabled: admin.mfaEnabled || false,
         status: admin.status,
-        createdAt: admin.createdAt,
+        createdAt: admin.createdAt || new Date().toISOString(),
         lastLoginAt: admin.lastLoginAt,
       },
       token: response.accessToken,
       refreshToken: response.refreshToken,
-      requiresMfa: response.requiresMfa || false,
-      mfaToken: response.mfaToken,
+      requiresMfa: false,
     };
   },
 

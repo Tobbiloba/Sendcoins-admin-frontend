@@ -105,9 +105,14 @@ export const useAuth = () => {
         // Login complete
         dispatch(setCredentials({ user: data.user, token: data.token }));
         setLocation('/dashboard');
+      } else {
+        // Unexpected response - clear loading and set error
+        dispatch(setAuthLoading(false));
+        dispatch(setAuthError('Invalid response from server'));
       }
     },
     onError: (error: Error) => {
+      dispatch(setAuthLoading(false));
       dispatch(setAuthError(error.message || 'Login failed'));
     },
   });
