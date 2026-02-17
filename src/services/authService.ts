@@ -25,19 +25,27 @@ export const authService = {
   login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const response: any = await api.post('/auth/admin/login', credentials);
+    // Support both direct body and wrapped { data } (e.g. from some proxies)
+    const body = response?.data ?? response;
 
     // Check if MFA is required (backend returns mfaToken without admin data)
-    if (response.requiresMfa && response.mfaToken) {
+    if (body.requiresMfa && body.mfaToken) {
       return {
         success: true,
         requiresMfa: true,
-        mfaToken: response.mfaToken,
+        mfaToken: body.mfaToken,
       };
     }
 
     // Validate response has admin data
-    const admin = response.admin;
+    const admin = body.admin;
     if (!admin) {
+      throw new Error('Invalid response from server');
+    }
+
+    const accessToken = body.accessToken;
+    const refreshToken = body.refreshToken;
+    if (!accessToken) {
       throw new Error('Invalid response from server');
     }
 
@@ -60,8 +68,8 @@ export const authService = {
         createdAt: admin.createdAt || new Date().toISOString(),
         lastLoginAt: admin.lastLoginAt,
       },
-      token: response.accessToken,
-      refreshToken: response.refreshToken,
+      token: accessToken,
+      refreshToken,
       requiresMfa: false,
     };
   },

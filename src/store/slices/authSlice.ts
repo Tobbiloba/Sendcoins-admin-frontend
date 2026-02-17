@@ -73,7 +73,9 @@ export const authSlice = createSlice({
       state,
       action: PayloadAction<{ user: AdminUser; token: string; refreshToken?: string }>
     ) => {
-      const { user, token, refreshToken } = action.payload;
+      const payload = action.payload;
+      if (!payload?.user || !payload?.token) return;
+      const { user, token, refreshToken } = payload;
       state.user = user;
       state.token = token;
       state.isAuthenticated = true;
