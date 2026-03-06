@@ -24,6 +24,27 @@ export interface UpdateRateParams {
   market_rate?: number;
 }
 
+export interface RateHistoryItem {
+  id: number;
+  admin: {
+    id: number;
+    email: string;
+    name: string;
+  };
+  before: {
+    buying_rate: number | null;
+    selling_rate: number | null;
+    market_rate: number | null;
+  } | null;
+  after: {
+    buying_rate: number | null;
+    selling_rate: number | null;
+    market_rate: number | null;
+  } | null;
+  changedFields: string[];
+  createdAt: string;
+}
+
 export interface BulkUpdateItem {
   currency_init: string;
   buying_rate?: number;
@@ -81,6 +102,19 @@ export const rateService = {
     const response = await api.patch<UpdateRateResponse>(
       `/admin/rates/${currencyInit}`,
       data
+    );
+    return response;
+  },
+
+  /**
+   * Get rate change history for a currency
+   */
+  getHistory: async (
+    currencyInit: string,
+    limit = 50
+  ): Promise<{ success: boolean; data: RateHistoryItem[] }> => {
+    const response = await api.get<{ success: boolean; data: RateHistoryItem[] }>(
+      `/admin/rates/history/${currencyInit}?limit=${limit}`
     );
     return response;
   },

@@ -1,12 +1,13 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { SearchNormal1, Edit2, TickCircle, CloseCircle, Refresh2 } from 'iconsax-react';
+import { SearchNormal1, Edit2, TickCircle, CloseCircle, Refresh2, Clock, ArrowRight } from 'iconsax-react';
 import { queryKeys } from '@/lib/queryClient';
-import { rateService, CurrencyRate, UpdateRateParams, UpdateRateResponse } from '@/services/rateService';
+import { rateService, CurrencyRate, UpdateRateParams, UpdateRateResponse, RateHistoryItem } from '@/services/rateService';
 import { useMfaProtectedAction } from '@/hooks/useMfaProtectedAction';
 import { MfaVerificationModal } from '@/components/modals/MfaVerificationModal';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface EditingRate {
   currency_init: string;
@@ -23,6 +24,10 @@ export default function Rates() {
   const [searchQuery, setSearchQuery] = useState('');
   const [editingCurrencyInit, setEditingCurrencyInit] = useState<string | null>(null);
   const [editingValues, setEditingValues] = useState<EditingRate | null>(null);
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
+  const [selectedRate, setSelectedRate] = useState<CurrencyRate | null>(null);
+  const [rateHistory, setRateHistory] = useState<RateHistoryItem[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   // Fetch rates
   const { data, isLoading, isError, refetch } = useQuery({
@@ -161,6 +166,41 @@ export default function Rates() {
     return rate.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
   };
 
+  // Handle clicking on a rate to view history
+  const handleViewHistory = async (rate: CurrencyRate) => {
+    setSelectedRate(rate);
+    setHistoryModalOpen(true);
+    setHistoryLoading(true);
+    setRateHistory([]);
+
+    try {
+      const response = await rateService.getHistory(rate.currency_init);
+      if (response.success) {
+        setRateHistory(response.data);
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to load rate history',
+        variant: 'destructive',
+      });
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  // Format date for history
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
 
   return (
     <DashboardLayout title="Currency Rates">
@@ -239,7 +279,10 @@ export default function Rates() {
               {filteredRates.map((rate) => (
                 <tr key={rate.currency_init} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => handleViewHistory(rate)}
+                      className="flex items-center gap-3 text-left hover:opacity-80 transition-opacity"
+                    >
                       {rate.flag_emoji ? (
                         <span className="text-2xl">{rate.flag_emoji}</span>
                       ) : (
@@ -248,12 +291,15 @@ export default function Rates() {
                         </div>
                       )}
                       <div>
-                        <div className="font-medium text-gray-900">{rate.currency_name}</div>
+                        <div className="font-medium text-gray-900 flex items-center gap-2">
+                          {rate.currency_name}
+                          <Clock size="14" color="currentColor" className="text-gray-400" />
+                        </div>
                         <div className="text-sm text-gray-500">
                           {rate.currency_init} ({rate.currency_sign})
                         </div>
                       </div>
-                    </div>
+                    </button>
                   </td>
                   <td className="px-6 py-4 text-right">
                     {editingCurrencyInit === rate.currency_init && editingValues ? (
@@ -379,6 +425,93 @@ export default function Rates() {
         actionName={mfa.modalConfig.actionName}
         actionDescription={mfa.modalConfig.actionDescription}
       />
+
+      {/* Rate History Modal */}
+      <Dialog open={historyModalOpen} onOpenChange={setHistoryModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedRate?.flag_emoji && <span className="text-xl">{selectedRate.flag_emoji}</span>}
+              {selectedRate?.currency_name} ({selectedRate?.currency_init}) - Rate History
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto">
+            {historyLoading ? (
+              <div className="flex items-center justify-center h-32">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+              </div>
+            ) : rateHistory.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-32 text-gray-500">
+                <Clock size="32" color="currentColor" className="mb-2 opacity-50" />
+                <p>No rate changes recorded yet</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {rateHistory.map((item) => (
+                  <div
+                    key={item.id}
+                    className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="text-sm text-gray-500">
+                        {formatDate(item.createdAt)}
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        by {item.admin.name}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4 text-sm">
+                      {/* Buying Rate */}
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">Buying Rate</div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-gray-400">
+                            {formatRate(item.before?.buying_rate ?? null)}
+                          </span>
+                          <ArrowRight size="14" color="currentColor" className="text-gray-400" />
+                          <span className="font-mono text-gray-900 font-medium">
+                            {formatRate(item.after?.buying_rate ?? null)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Selling Rate */}
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">Selling Rate</div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-gray-400">
+                            {formatRate(item.before?.selling_rate ?? null)}
+                          </span>
+                          <ArrowRight size="14" color="currentColor" className="text-gray-400" />
+                          <span className="font-mono text-gray-900 font-medium">
+                            {formatRate(item.after?.selling_rate ?? null)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Market Rate */}
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">Market Rate</div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-gray-400">
+                            {formatRate(item.before?.market_rate ?? null)}
+                          </span>
+                          <ArrowRight size="14" color="currentColor" className="text-gray-400" />
+                          <span className="font-mono text-gray-900 font-medium">
+                            {formatRate(item.after?.market_rate ?? null)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
