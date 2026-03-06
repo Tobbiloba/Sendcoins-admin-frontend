@@ -18,6 +18,7 @@ import {
   Shop,
   Setting2,
   Sms,
+  DollarCircle,
 } from 'iconsax-react';
 import { NotificationsDropdown } from '@/components/notifications/NotificationsDropdown';
 import { AppLogo } from '@/components/ui/AppLogo';
@@ -79,6 +80,7 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
       groupLabel: 'System',
       items: [
         { icon: Profile2User, path: '/manage-team', label: 'Manage Team' },
+        { icon: DollarCircle, path: '/rates', label: 'Currency Rates' },
         { icon: Setting2, path: '/settings', label: 'Settings' },
       ],
     },

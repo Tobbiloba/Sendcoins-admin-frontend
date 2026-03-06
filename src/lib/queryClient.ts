@@ -139,4 +139,11 @@ export const queryKeys = {
     revenue: (params?: object) => ['analytics', 'revenue', params] as const,
     topUsers: (params?: object) => ['analytics', 'top-users', params] as const,
   },
+
+  // Rates
+  rates: {
+    all: ['rates'] as const,
+    list: () => ['rates', 'list'] as const,
+    detail: (id: number) => ['rates', id] as const,
+  },
 };

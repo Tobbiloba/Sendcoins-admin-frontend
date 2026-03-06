@@ -27,6 +27,11 @@ export const ROUTE_PERMISSIONS: Record<string, RoutePermissionConfig> = {
   '/merchants': { anyOf: ['READ_USERS', 'VERIFY_KYC'] },
   '/mail': { anyOf: ['VIEW_ANALYTICS', 'MANAGE_ADMINS', 'SEND_EMAILS'] },
   '/settings': { permission: 'MANAGE_ADMINS' },
+  '/rates': { permission: 'READ_RATES' },
+   // Platform management routes (Super Admin / platform managers only)
+  '/platform-wallet': { permission: 'MANAGE_PLATFORM' },
+  '/revenue': { permission: 'MANAGE_PLATFORM' },
+  '/settings/platform': { permission: 'MANAGE_PLATFORM' },
   '/security': {}, // all authenticated users (no entry = not in sidebar; direct access allowed)
 };
 

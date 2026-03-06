@@ -30,6 +30,7 @@ import Merchants from '@/pages/Merchants';
 import Settings from '@/pages/Settings';
 import Mail from '@/pages/Mail';
 import Security from '@/pages/Security';
+import Rates from '@/pages/Rates';
 
 // =============================================================================
 // Route Components with Guards
@@ -153,6 +154,13 @@ const ProtectedRoutes = () => (
       <Route path="/settings">
         <PermissionGuard permission="MANAGE_ADMINS">
           <Settings />
+        </PermissionGuard>
+      </Route>
+
+      {/* Currency Rates */}
+      <Route path="/rates">
+        <PermissionGuard permission="READ_RATES">
+          <Rates />
         </PermissionGuard>
       </Route>
 

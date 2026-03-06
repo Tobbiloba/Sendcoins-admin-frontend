@@ -16,6 +16,9 @@ import {
   ArrowRight2,
 } from 'iconsax-react';
 import { Link } from 'wouter';
+import { useAppSelector } from '@/store';
+import { selectPermissions } from '@/store/slices/authSlice';
+import type { Permission } from '@/types/auth';
 
 // =============================================================================
 // Helper Functions
@@ -80,7 +83,7 @@ const StatCard = ({ title, value, icon, iconBg, trend, subtitle }: StatCardProps
             trend.isPositive ? 'text-green-600' : 'text-red-600'
           }`}
         >
-          {trend.isPositive ? <TrendUp size="14" /> : <TrendDown size="14" />}
+          {trend.isPositive ? <TrendUp size="14" color="currentColor" /> : <TrendDown size="14" color="currentColor" />}
           {Math.abs(trend.value)}%
         </div>
       )}
@@ -206,7 +209,7 @@ const QuickAction = ({ title, description, icon, href, count, countColor = 'bg-b
           {count}
         </div>
       )}
-      <ArrowRight2 size="16" className="text-gray-400" />
+      <ArrowRight2 size="16" color="currentColor" className="text-gray-400" />
     </div>
   </Link>
 );
@@ -215,12 +218,24 @@ const QuickAction = ({ title, description, icon, href, count, countColor = 'bg-b
 // Dashboard Page Component
 // =============================================================================
 
+type CombinedStats = {
+  totalUsers?: number;
+  activeUsers?: number;
+  totalTransactions?: number;
+  transactionVolumeUsd?: string;
+  pendingKyc?: number;
+  flaggedTransactions?: number;
+};
+
 export default function Dashboard() {
+  const userPermissions = useAppSelector(selectPermissions);
+  const canManagePlatform = userPermissions.includes('MANAGE_PLATFORM' as Permission);
+
   const { data: overview, isLoading: overviewLoading, refetch: refetchOverview } = useDashboardOverview();
   const { data: pending } = useDashboardPending();
   const { data: platformStats, refetch: refetchPlatformStats } = usePlatformStats();
-  const { data: platformBalance, isLoading: balanceLoading } = usePlatformBalance();
-  const { data: platformRevenue, isLoading: revenueLoading } = usePlatformRevenue({ period: 'month' });
+  const { data: platformBalance, isLoading: balanceLoading } = usePlatformBalance(canManagePlatform);
+  const { data: platformRevenue, isLoading: revenueLoading } = usePlatformRevenue({ period: 'month' }, canManagePlatform);
 
   const statsFromOverview = overview?.users && overview?.transactions && overview?.kyc
     ? {
@@ -232,7 +247,7 @@ export default function Dashboard() {
         flaggedTransactions: overview.transactions.flagged,
       }
     : null;
-  const stats = statsFromOverview ?? platformStats ?? {};
+  const stats = (statsFromOverview ?? platformStats ?? {}) as CombinedStats;
   const pendingKyc = pending?.pendingKyc ?? stats.pendingKyc ?? 0;
   const flaggedTx = pending?.flaggedTransactions ?? stats.flaggedTransactions ?? 0;
   const pendingTx = pending?.pendingTransactions ?? 0;
@@ -258,7 +273,7 @@ export default function Dashboard() {
             disabled={isLoading}
             className="p-2 bg-gray-50 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
           >
-            <Refresh size="18" className={isLoading ? 'animate-spin' : ''} />
+            <Refresh size="18" color="currentColor" className={isLoading ? 'animate-spin' : ''} />
           </button>
         </div>
 
@@ -267,7 +282,7 @@ export default function Dashboard() {
           <StatCard
             title="Total Users"
             value={formatNumber(stats.totalUsers ?? 0)}
-            icon={<People size="20" className="text-blue-600" />}
+            icon={<People size="20" color="currentColor" className="text-blue-600" />}
             iconBg="bg-blue-100"
             trend={platformStats?.trends?.users}
             subtitle={`${formatNumber(stats.activeUsers ?? 0)} active`}
@@ -275,7 +290,7 @@ export default function Dashboard() {
           <StatCard
             title="Transactions"
             value={formatNumber(stats.totalTransactions ?? 0)}
-            icon={<ArrowSwapHorizontal size="20" className="text-green-600" />}
+            icon={<ArrowSwapHorizontal size="20" color="currentColor" className="text-green-600" />}
             iconBg="bg-green-100"
             trend={platformStats?.trends?.transactions}
             subtitle={formatCurrency(stats.transactionVolumeUsd ?? '0')}
@@ -283,20 +298,21 @@ export default function Dashboard() {
           <StatCard
             title="Pending KYC"
             value={formatNumber(pendingKyc)}
-            icon={<ShieldTick size="20" className="text-yellow-600" />}
+            icon={<ShieldTick size="20" color="currentColor" className="text-yellow-600" />}
             iconBg="bg-yellow-100"
             subtitle="Requires verification"
           />
           <StatCard
             title="Flagged Transactions"
             value={formatNumber(flaggedTx)}
-            icon={<Warning2 size="20" className="text-red-600" />}
+            icon={<Warning2 size="20" color="currentColor" className="text-red-600" />}
             iconBg="bg-red-100"
             subtitle="Needs review"
           />
         </div>
 
-        {/* Wallets & Revenue Section */}
+        {/* Wallets & Revenue Section (platform-level, gated by MANAGE_PLATFORM permission) */}
+        {canManagePlatform && (
         <div className="grid grid-cols-3 gap-6">
           {/* Fee Wallet */}
           {platformBalance?.feeWallet && (
@@ -304,7 +320,7 @@ export default function Dashboard() {
               title="Fee Wallet"
               totalUsd={platformBalance.feeWallet.totalUsd}
               balances={platformBalance.feeWallet.balances}
-              icon={<WalletMoney size="18" className="text-green-600" />}
+              icon={<WalletMoney size="18" color="currentColor" className="text-green-600" />}
               iconBg="bg-green-100"
             />
           )}
@@ -315,7 +331,7 @@ export default function Dashboard() {
               title="Hot Wallet"
               totalUsd={platformBalance.hotWallet.totalUsd}
               balances={platformBalance.hotWallet.balances}
-              icon={<Bitcoin size="18" className="text-orange-600" />}
+              icon={<Bitcoin size="18" color="currentColor" className="text-orange-600" />}
               iconBg="bg-orange-100"
             />
           )}
@@ -333,7 +349,7 @@ export default function Dashboard() {
                 <div className={`text-xs font-medium flex items-center gap-1 ${
                   platformStats.trends.revenue.isPositive ? 'text-green-600' : 'text-red-600'
                 }`}>
-                  {platformStats.trends.revenue.isPositive ? <TrendUp size="12" /> : <TrendDown size="12" />}
+                  {platformStats.trends.revenue.isPositive ? <TrendUp size="12" color="currentColor" /> : <TrendDown size="12" color="currentColor" />}
                   {platformStats.trends.revenue.isPositive ? '+' : ''}{platformStats.trends.revenue.value}%
                 </div>
               )}
@@ -343,6 +359,7 @@ export default function Dashboard() {
             )}
           </div>
         </div>
+        )}
 
         {/* Quick Actions */}
         <div>
@@ -351,7 +368,7 @@ export default function Dashboard() {
             <QuickAction
               title="Review KYC Applications"
               description="Verify pending user identities"
-              icon={<ShieldTick size="18" />}
+              icon={<ShieldTick size="18" color="currentColor" />}
               href="/kyc"
               count={pendingKyc}
               countColor="bg-yellow-100 text-yellow-600"
@@ -359,7 +376,7 @@ export default function Dashboard() {
             <QuickAction
               title="Flagged Transactions"
               description="Review suspicious activities"
-              icon={<Warning2 size="18" />}
+              icon={<Warning2 size="18" color="currentColor" />}
               href="/transactions?status=flagged"
               count={flaggedTx}
               countColor="bg-red-100 text-red-600"
@@ -367,7 +384,7 @@ export default function Dashboard() {
             <QuickAction
               title="Pending Transactions"
               description="Approve or reject pending transactions"
-              icon={<ArrowSwapHorizontal size="18" />}
+              icon={<ArrowSwapHorizontal size="18" color="currentColor" />}
               href="/transactions?status=pending"
               count={pendingTx}
               countColor="bg-blue-100 text-blue-600"
@@ -375,7 +392,7 @@ export default function Dashboard() {
             <QuickAction
               title="Manage Team"
               description="View and manage admin users"
-              icon={<People size="18" />}
+              icon={<People size="18" color="currentColor" />}
               href="/manage-team"
             />
           </div>
@@ -433,7 +450,7 @@ export default function Dashboard() {
         {/* Loading Overlay */}
         {isLoading && (
           <div className="fixed inset-0 bg-white/50 flex items-center justify-center z-50">
-            <Refresh className="w-8 h-8 animate-spin text-blue-600" />
+            <Refresh color="currentColor" className="w-8 h-8 animate-spin text-blue-600" />
           </div>
         )}
       </div>

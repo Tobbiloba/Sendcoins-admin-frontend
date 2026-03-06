@@ -27,10 +27,13 @@ export type Permission =
   | 'MANAGE_DEPARTMENTS'
   | 'VIEW_DASHBOARD'
   | 'VIEW_ANALYTICS'
+  | 'MANAGE_PLATFORM'
   | 'EXPORT_DATA'
   | 'READ_NOTIFICATIONS'
   | 'MANAGE_NOTIFICATION_SETTINGS'
-  | 'SEND_EMAILS';
+  | 'SEND_EMAILS'
+  | 'READ_RATES'
+  | 'UPDATE_RATES';
 
 /**
  * Admin roles

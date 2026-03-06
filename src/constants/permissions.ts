@@ -107,6 +107,16 @@ export const PERMISSION_METADATA: Record<
     description: 'Compose and send broadcast emails to users/admins',
     category: 'Communications',
   },
+  READ_RATES: {
+    label: 'Read Rates',
+    description: 'View currency exchange rates',
+    category: 'Rate Management',
+  },
+  UPDATE_RATES: {
+    label: 'Update Rates',
+    description: 'Update buying and selling rates',
+    category: 'Rate Management',
+  },
 };
 
 /**

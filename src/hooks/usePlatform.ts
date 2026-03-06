@@ -15,25 +15,30 @@ import type { PlatformSettings } from '../services/platformService';
 /**
  * Hook to get platform wallet balances
  */
-export const usePlatformBalance = () => {
+export const usePlatformBalance = (enabled = true) => {
   return useQuery({
     queryKey: queryKeys.platform.balance(),
     queryFn: platformService.getBalance,
     refetchInterval: 60000, // Refetch every minute
+    enabled,
   });
 };
 
 /**
  * Hook to get platform revenue
  */
-export const usePlatformRevenue = (params?: {
-  period?: 'day' | 'week' | 'month' | 'year';
-  dateFrom?: string;
-  dateTo?: string;
-}) => {
+export const usePlatformRevenue = (
+  params?: {
+    period?: 'day' | 'week' | 'month' | 'year';
+    dateFrom?: string;
+    dateTo?: string;
+  },
+  enabled = true,
+) => {
   return useQuery({
     queryKey: queryKeys.platform.revenue(params),
     queryFn: () => platformService.getRevenue(params),
+    enabled,
   });
 };
 
